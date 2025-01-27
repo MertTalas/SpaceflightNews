@@ -17,13 +17,10 @@ fun NavigationGraph(navController: NavHostController) {
         composable(route = Screen.ArticleList.route) {
             ArticleListScreen(navController = navController)
         }
-        composable(
-            route = Screen.ArticleDetail.route,
-            arguments = listOf(navArgument("article") {
-                type = NavType.ParcelableType(Article::class.java)
-            })
-        ) { backStackEntry ->
-            val article = backStackEntry.arguments?.getParcelable<Article>("article")
+        composable(route = Screen.ArticleDetail.route) {
+            val article = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<Article>("article")
             article?.let {
                 ArticleDetailScreen(navController = navController, article = it)
             }
