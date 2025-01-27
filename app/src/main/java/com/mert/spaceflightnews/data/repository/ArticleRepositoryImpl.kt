@@ -13,8 +13,8 @@ class ArticleRepositoryImpl(
     override suspend fun getArticles(limit: Int, offset: Int): Flow<List<Article>> = flow {
         try {
             val response = apiService.getArticles(limit, offset)
-            val exercises = response.map { it.toDomainModel() }
-            emit(exercises)
+            val articles = response.results.map { it.toDomainModel() }
+            emit(articles)
         } catch (e: Exception) {
             emit(emptyList())
             e.printStackTrace()

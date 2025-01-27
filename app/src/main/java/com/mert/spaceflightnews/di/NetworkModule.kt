@@ -38,7 +38,7 @@ object NetworkModule {
     @Singleton
     fun provideApiService(okHttpClient: OkHttpClient): ApiService {
         return Retrofit.Builder()
-            .baseUrl("https://api.spaceflightnewsapi.net/v4")
+            .baseUrl("https://api.spaceflightnewsapi.net/v4/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

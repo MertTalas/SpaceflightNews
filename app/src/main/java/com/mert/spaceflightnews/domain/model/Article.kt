@@ -8,10 +8,10 @@ data class Article(
     val id: Int,
     val title: String,
     val summary: String,
-    val publishedAt: String,
-    val updatedAt: String,
+    val publishedAt: String?,
+    val updatedAt: String?,
     val url: String,
     val imageUrl: String?,
-    val newsSite: String,
+    val newsSite: String?,
     val content: String?
 ) : Parcelable

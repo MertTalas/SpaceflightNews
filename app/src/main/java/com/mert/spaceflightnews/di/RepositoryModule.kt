@@ -15,7 +15,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideExerciseRepository(apiService: ApiService): ArticleRepository {
+    fun provideArticleRepository(apiService: ApiService): ArticleRepository {
         return ArticleRepositoryImpl(apiService)
     }
 }
