@@ -1,7 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.hilt.android)
+    id("kotlin-parcelize")
+    kotlin("kapt")
 }
 
 android {
@@ -37,6 +40,9 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.get()
+    }
 }
 
 dependencies {
@@ -49,6 +55,44 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.compose.compiler)
+
+    // Dagger Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+
+    // Coroutines
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    // Coil for Compose
+    implementation(libs.coil.compose)
+
+    // Navigation for Compose
+    implementation(libs.navigation.compose)
+
+    // Jetpack Hilt Navigation Compose
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Timber for logging
+    implementation(libs.timber)
+
+    // OkHttp ve Logging Interceptor
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    // Test Dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
