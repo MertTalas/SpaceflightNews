@@ -2,17 +2,20 @@ package com.mert.spaceflightnews.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mert.spaceflightnews.di.CoroutineDispatchers
 import com.mert.spaceflightnews.domain.model.Article
 import com.mert.spaceflightnews.domain.usecase.GetArticlesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
 class ArticleListViewModel @Inject constructor(
     private val getArticlesUseCase: GetArticlesUseCase,
+    private val dispatchers: CoroutineDispatchers
 ) : ViewModel() {
 
     private val _articles = MutableStateFlow<List<Article>>(emptyList())
@@ -28,15 +31,27 @@ class ArticleListViewModel @Inject constructor(
         loadArticles()
     }
 
+    fun refreshArticles() {
+        viewModelScope.launch(dispatchers.main) {
+            currentOffset = 0
+            _articles.value = emptyList()
+            loadArticles()
+        }
+    }
+
     fun loadArticles() {
         if (_isLoading.value) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.main) {
             _isLoading.value = true
             try {
-                getArticlesUseCase(limit, currentOffset).collect { newArticles ->
-                    _articles.value += newArticles
-                    currentOffset += limit
+                withContext(dispatchers.io) {
+                    getArticlesUseCase(limit, currentOffset).collect { newArticles ->
+                        withContext(dispatchers.main) {
+                            _articles.value += newArticles
+                            currentOffset += limit
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
