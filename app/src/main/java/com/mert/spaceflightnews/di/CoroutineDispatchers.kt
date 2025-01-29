@@ -4,9 +4,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
-class CoroutineDispatchers @Inject constructor() {
-    val main: CoroutineDispatcher = Dispatchers.Main
-    val io: CoroutineDispatcher = Dispatchers.IO
-    val default: CoroutineDispatcher = Dispatchers.Default
-    val unconfined: CoroutineDispatcher = Dispatchers.Unconfined
+open class CoroutineDispatchers @Inject constructor() {
+    open val main: CoroutineDispatcher = Dispatchers.Main
+    open val io: CoroutineDispatcher = Dispatchers.IO
+    open val default: CoroutineDispatcher = Dispatchers.Default
+    open val unconfined: CoroutineDispatcher = Dispatchers.Unconfined
 }
