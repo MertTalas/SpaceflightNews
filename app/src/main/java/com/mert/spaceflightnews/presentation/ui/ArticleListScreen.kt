@@ -1,9 +1,9 @@
 package com.mert.spaceflightnews.presentation.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,14 +33,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import com.mert.spaceflightnews.domain.model.Article
 import com.mert.spaceflightnews.presentation.navigation.Screen
 import com.mert.spaceflightnews.presentation.viewmodel.ArticleListViewModel
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.mert.spaceflightnews.extension.formatToDisplayDateTime
+import com.mert.spaceflightnews.extension.shimmerEffect
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleListScreen(
     navController: NavController,
@@ -50,6 +66,14 @@ fun ArticleListScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     val listState = rememberLazyListState()
+    val pullRefreshState = rememberPullToRefreshState()
+
+    if (pullRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            viewModel.refreshArticles()
+            pullRefreshState.endRefresh()
+        }
+    }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -66,16 +90,28 @@ fun ArticleListScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        ArticleList(
-            articles = articles,
-            listState = listState,
-            paddingValues = paddingValues,
-            isLoading = isLoading,
-            onItemClick = { article ->
-                navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
-                navController.navigate(Screen.ArticleDetail.route)
-            }
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(pullRefreshState.nestedScrollConnection)
+        ) {
+            ArticleList(
+                articles = articles,
+                listState = listState,
+                paddingValues = paddingValues,
+                isLoading = isLoading,
+                onItemClick = { article ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
+                    navController.navigate(Screen.ArticleDetail.route)
+                }
+            )
+
+            PullToRefreshContainer(
+                modifier = Modifier
+                    .align(Alignment.TopCenter),
+                state = pullRefreshState,
+            )
+        }
     }
 }
 
@@ -84,9 +120,14 @@ fun ArticleListScreen(
 fun ArticleListToolbar(screenTitle: String) {
     Column(modifier = Modifier.fillMaxWidth()) {
         CenterAlignedTopAppBar(
-            title = { Text(screenTitle) },
+            title = {
+                Text(
+                    text = screenTitle,
+                    color = Color.White
+                )
+            },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = Color(0xFFFC3B53)
             )
         )
     }
@@ -116,51 +157,141 @@ fun ArticleList(
         }
 
         if (isLoading) {
-            item {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            items(10) { ArticleItemShimmer() }
         }
     }
 }
 
 @Composable
 fun ArticleItem(article: Article, onItemClick: () -> Unit) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
-            .padding(8.dp)
+            .padding(horizontal = 8.dp)
             .clickable(onClick = onItemClick),
-        verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(
-                model = article.imageUrl,
-                contentScale = ContentScale.Crop,
-            ),
-            contentDescription = "Article Image",
+        Row(
             modifier = Modifier
-                .size(80.dp)
-                .padding(end = 8.dp)
-        )
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(article.imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Article Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(2.dp)),
+                error = rememberVectorPainter(Icons.Filled.Warning)
+            )
 
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = article.title,
-                style = MaterialTheme.typography.headlineSmall,
-                maxLines = 2
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 4.dp)
+            ) {
+                Text(
+                    text = article.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    article.publishedAt?.let { dateString ->
+                        Text(
+                            text = dateString.formatToDisplayDateTime(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    article.newsSite?.let { site ->
+                        Text(
+                            text = site,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ArticleItemShimmer() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .padding(horizontal = 8.dp),
+        shape = RoundedCornerShape(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .shimmerEffect()
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${article.publishedAt ?: "Publish Info Not Available"} - ${article.newsSite ?: "Site Info Not Available"}",
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 12.sp
-            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 4.dp)
+            ) {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp)
+                        .shimmerEffect()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Spacer(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(16.dp)
+                            .shimmerEffect()
+                    )
+
+                    Spacer(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(16.dp)
+                            .shimmerEffect()
+                    )
+                }
+            }
         }
     }
 }

@@ -92,6 +92,9 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
+    // Date library
+    implementation(libs.threeten)
+
     // Test Dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -2,10 +2,8 @@ package com.mert.spaceflightnews.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.mert.spaceflightnews.domain.model.Article
 import com.mert.spaceflightnews.presentation.ui.ArticleDetailScreen
 import com.mert.spaceflightnews.presentation.ui.ArticleListScreen
