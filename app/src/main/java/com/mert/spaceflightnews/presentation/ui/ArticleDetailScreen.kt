@@ -1,5 +1,9 @@
 package com.mert.spaceflightnews.presentation.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,23 +40,24 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.mert.spaceflightnews.domain.model.Article
-import com.mert.spaceflightnews.presentation.viewmodel.ArticleDetailViewModel
 import com.mert.spaceflightnews.extension.formatToDisplayDateTime
 
 @Composable
 fun ArticleDetailScreen(
-    navController: NavController,
-    article: Article,
-    articleDetailViewModel: ArticleDetailViewModel = hiltViewModel()
+    onBackPressed: () -> Unit,
+    article: Article
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
-            ArticleDetailToolbar(navController = navController, screenTitle = "Article Detail")
+            ArticleDetailToolbar(
+                onBackPressed,
+                screenTitle = "Article Detail"
+            )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -110,32 +115,32 @@ fun ArticleDetailScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = article.summary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(
-                    onClick = { articleDetailViewModel.openArticleUrl(article.url) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-                ) {
-                    Text("Read Full Article")
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.padding(start = 8.dp)
+                    Text(
+                        text = article.summary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedButton(
+                        onClick = { navigateUrl(article.url, context) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Read Full Article")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
                 }
             }
         }
@@ -144,11 +149,11 @@ fun ArticleDetailScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ArticleDetailToolbar(navController: NavController, screenTitle: String) {
+fun ArticleDetailToolbar(onBackPressed: () -> Unit, screenTitle: String) {
     CenterAlignedTopAppBar(
         title = { Text(text = screenTitle, color = Color.White) },
         navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = { onBackPressed() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
@@ -160,4 +165,21 @@ fun ArticleDetailToolbar(navController: NavController, screenTitle: String) {
             containerColor = Color(0xFFFC3B53)
         )
     )
+}
+
+private fun navigateUrl(
+    articleUrl: String,
+    localContext: Context
+) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articleUrl))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        localContext.startActivity(intent)
+    } catch (e: Exception) {
+        Toast.makeText(
+            localContext,
+            "Could not open the URL",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 }

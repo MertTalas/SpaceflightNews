@@ -9,18 +9,38 @@ import com.mert.spaceflightnews.presentation.ui.ArticleDetailScreen
 import com.mert.spaceflightnews.presentation.ui.ArticleListScreen
 
 @Composable
-fun NavigationGraph(navController: NavHostController) {
+fun NavigationGraph(
+    navController: NavHostController
+) {
 
-    NavHost(navController = navController, startDestination = Screen.ArticleList.route) {
+    NavHost(
+        navController = navController,
+        startDestination = Screen.ArticleList.route
+    ) {
         composable(route = Screen.ArticleList.route) {
-            ArticleListScreen(navController = navController)
+            ArticleListScreen(
+                onArticleClick = { article ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("article", article)
+
+                    navController.navigate(Screen.ArticleDetail.route)
+                }
+            )
         }
+
         composable(route = Screen.ArticleDetail.route) {
             val article = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<Article>("article")
+
             article?.let {
-                ArticleDetailScreen(navController = navController, article = it)
+                ArticleDetailScreen(
+                    onBackPressed = {
+                        navController.popBackStack()
+                    },
+                    article = it
+                )
             }
         }
     }

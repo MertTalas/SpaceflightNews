@@ -34,9 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.mert.spaceflightnews.domain.model.Article
-import com.mert.spaceflightnews.presentation.navigation.Screen
 import com.mert.spaceflightnews.presentation.viewmodel.ArticleListViewModel
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -59,7 +57,7 @@ import com.mert.spaceflightnews.extension.shimmerEffect
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleListScreen(
-    navController: NavController,
+    onArticleClick: (Article) -> Unit,
     viewModel: ArticleListViewModel = hiltViewModel()
 ) {
     val articles by viewModel.articles.collectAsState()
@@ -101,8 +99,7 @@ fun ArticleListScreen(
                 paddingValues = paddingValues,
                 isLoading = isLoading,
                 onItemClick = { article ->
-                    navController.currentBackStackEntry?.savedStateHandle?.set("article", article)
-                    navController.navigate(Screen.ArticleDetail.route)
+                    onArticleClick(article)
                 }
             )
 

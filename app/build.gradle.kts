@@ -19,6 +19,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", "\"${project.properties["BASE_URL"]}\"")
     }
 
     buildTypes {
@@ -39,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.compose.get()
@@ -91,9 +93,6 @@ dependencies {
     // OkHttp ve Logging Interceptor
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-
-    // Date library
-    implementation(libs.threeten)
 
     // Test libraries
     testImplementation(libs.junit)
