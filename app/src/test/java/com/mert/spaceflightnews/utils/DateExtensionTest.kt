@@ -5,14 +5,14 @@ import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
 class DateExtensionTest {
-    /*@Test
+    @Test
     fun `formatToDisplayDateTime correctly formats valid date string`() {
         val dateString = "2025-01-29T19:30:18Z"
 
         val result = dateString.formatToDisplayDateTime()
 
         assertEquals("29 Jan 2025, 19:30", result)
-    }*/
+    }
 
     @Test
     fun `formatToDisplayDateTime returns original string when format is invalid`() {
